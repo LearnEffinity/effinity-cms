@@ -14,6 +14,7 @@ export const AuthContext = createContext({
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -22,7 +23,20 @@ export const AuthProvider = ({ children }) => {
       async (event, session) => {
         setSession(session);
         setUser(session?.user || null);
-      }
+
+        if (session?.user) {
+          const {
+            data: { role },
+          } = await supabaseClient
+            .from("profiles")
+            .select("role")
+            .eq("id", session.user.id)
+            .single();
+          setUserRole(role);
+        } else {
+          setUserRole(null);
+        }
+      },
     );
 
     const fetchSession = async () => {
@@ -31,6 +45,19 @@ export const AuthProvider = ({ children }) => {
       } = await supabaseClient.auth.getSession();
       setSession(session);
       setUser(session?.user || null);
+
+      if (session?.user) {
+        const {
+          data: { role },
+        } = await supabaseClient
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
+        setUserRole(role);
+      } else {
+        setUserRole(null);
+      }
     };
 
     fetchSession();
@@ -41,7 +68,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    if (
+    if (userRole !== "admin" && pathname !== "/gtfo") {
+      router.push("/gtfo");
+    } else if (
       user &&
       pathname.startsWith("/auth") &&
       !pathname.startsWith("/auth/reset")
@@ -54,7 +83,8 @@ export const AuthProvider = ({ children }) => {
     ) {
       router.push("/auth/login");
     }
-  }, [user, router]);
+  }, [user, userRole, router, pathname]);
+
   return (
     <AuthContext.Provider value={{ user, session, client: supabaseClient }}>
       {children}
