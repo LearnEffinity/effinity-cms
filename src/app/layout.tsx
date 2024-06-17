@@ -34,8 +34,7 @@ export default function RootLayout({
       <body
         className={`h-max min-h-screen text-text-primary ${poppins.className}`}
       >
-        {/* <AuthProvider>{children}</AuthProvider> */}
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

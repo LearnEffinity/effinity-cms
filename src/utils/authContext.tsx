@@ -23,15 +23,18 @@ export const AuthProvider = ({ children }) => {
       async (event, session) => {
         setSession(session);
         setUser(session?.user || null);
+        // console.log("session", session);
+        // console.log("user", user);
 
         if (session?.user) {
           const {
             data: { role },
           } = await supabaseClient
-            .from("profiles")
+            .from("users")
             .select("role")
             .eq("id", session.user.id)
             .single();
+          console.log("role", role);
           setUserRole(role);
         } else {
           setUserRole(null);
@@ -68,7 +71,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    if (userRole !== "admin" && pathname !== "/gtfo") {
+    if (!user && !pathname.startsWith("/auth")) {
+      router.push("/auth/login");
+    } else if (userRole && userRole !== "admin" && pathname !== "/gtfo") {
       router.push("/gtfo");
     } else if (
       user &&
@@ -76,12 +81,6 @@ export const AuthProvider = ({ children }) => {
       !pathname.startsWith("/auth/reset")
     ) {
       router.push("/");
-    } else if (
-      !user &&
-      !pathname.startsWith("/auth") &&
-      !pathname.startsWith("/auth/reset")
-    ) {
-      router.push("/auth/login");
     }
   }, [user, userRole, router, pathname]);
 
