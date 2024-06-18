@@ -5,7 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import Button from "@/components/form/Button";
 import { InputWithLabel } from "@/components/form/Input";
 
-export default function TopicPage() {
+export default function TopicPage({ params }: { params: { slug: string } }) {
   const supabase = createClient();
   const router = useRouter();
   const pathname = usePathname();
@@ -14,7 +14,7 @@ export default function TopicPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const slug = pathname.split("/").pop();
+  const slug = params.slug;
 
   useEffect(() => {
     async function fetchTopic() {
