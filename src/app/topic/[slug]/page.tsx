@@ -100,12 +100,13 @@ export default function TopicPage({ params }: { params: { slug: string } }) {
             <Button
               onClick={() => setIsEditing(true)}
               size="md"
-              variant="outline"
+              
             >
-              Edit
+              Edit Topic Name & Description
             </Button>
           </div>
         )}
+        
         <h2 className="mb-4 mt-8 text-2xl font-semibold">Modules</h2>
         <ul className="space-y-2">
           {modules.map((module) => (
@@ -121,7 +122,7 @@ export default function TopicPage({ params }: { params: { slug: string } }) {
               <p className="text-gray-700">{module.description}</p>
               <Button
                 onClick={() =>
-                  router.push(`/topic/${slug}/edit-module/${module.id}`)
+                  router.push(`/topic/${slug}/${module.id}`)
                 }
                 size="sm"
                 variant="outline"
