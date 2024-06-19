@@ -9,58 +9,49 @@ export const AuthContext = createContext({
   user: null,
   session: null,
   client: supabaseClient,
+  userRole: null,
 });
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [isAuthLoaded, setIsAuthLoaded] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const { data: authListener } = supabaseClient.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user || null);
-        // console.log("session", session);
-        // console.log("user", user);
+    const handleAuthChange = async (event, session) => {
+      setSession(session);
+      setUser(session?.user || null);
 
-        if (session?.user) {
-          const {
-            data: { role },
-          } = await supabaseClient
-            .from("users")
-            .select("role")
-            .eq("id", session.user.id)
-            .single();
-          console.log("role", role);
-          setUserRole(role);
-        } else {
+      if (session?.user) {
+        const { data: userRoleData, error } = await supabaseClient
+          .from("users")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching user role:", error);
           setUserRole(null);
+        } else {
+          setUserRole(userRoleData?.role || null);
         }
-      },
-    );
+      } else {
+        setUserRole(null);
+      }
+      setIsAuthLoaded(true);
+    };
+
+    const { data: authListener } =
+      supabaseClient.auth.onAuthStateChange(handleAuthChange);
 
     const fetchSession = async () => {
       const {
         data: { session },
       } = await supabaseClient.auth.getSession();
-      setSession(session);
-      setUser(session?.user || null);
-
-      if (session?.user) {
-        const {
-          data: { role },
-        } = await supabaseClient
-          .from("profiles")
-          .select("role")
-          .eq("id", session.user.id)
-          .single();
-        setUserRole(role);
-      } else {
-        setUserRole(null);
-      }
+      await handleAuthChange(null, session);
     };
 
     fetchSession();
@@ -71,21 +62,29 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    if (!user && !pathname.startsWith("/auth")) {
-      router.push("/auth/login");
-    } else if (userRole && userRole !== "admin" && pathname !== "/gtfo") {
-      router.push("/gtfo");
-    } else if (
-      user &&
-      pathname.startsWith("/auth") &&
-      !pathname.startsWith("/auth/reset")
-    ) {
-      router.push("/");
+    if (!isAuthLoaded) return;
+
+    if (!user) {
+      if (!pathname.startsWith("/auth")) {
+        router.push("/auth/login");
+      }
+    } else {
+      if (userRole !== "admin" && pathname !== "/gtfo") {
+        router.push("/gtfo");
+      } else if (
+        user &&
+        pathname.startsWith("/auth") &&
+        !pathname.startsWith("/auth/reset")
+      ) {
+        router.push("/");
+      }
     }
-  }, [user, userRole, router, pathname]);
+  }, [user, userRole, isAuthLoaded, router, pathname]);
 
   return (
-    <AuthContext.Provider value={{ user, session, client: supabaseClient }}>
+    <AuthContext.Provider
+      value={{ user, session, client: supabaseClient, userRole }}
+    >
       {children}
     </AuthContext.Provider>
   );
