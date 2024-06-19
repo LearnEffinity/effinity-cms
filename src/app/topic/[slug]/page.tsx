@@ -1,20 +1,26 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import Button from "@/components/form/Button";
 import { InputWithLabel } from "@/components/form/Input";
 
-export default function TopicPage({ params }: { params: { slug: string } }) {
+export default function TopicPage({ params }) {
   const supabase = createClient();
   const router = useRouter();
-  const pathname = usePathname();
+  const slug = params.slug;
   const [topic, setTopic] = useState({ name: "", description: "", slug: "" });
   const [modules, setModules] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const slug = params.slug;
+  const fetchImageUrl = async (imagePath) => {
+    const { data } = supabase.storage
+      .from("module_images")
+      .getPublicUrl(imagePath);
+
+    return data.publicUrl;
+  };
 
   useEffect(() => {
     async function fetchTopic() {
@@ -39,7 +45,17 @@ export default function TopicPage({ params }: { params: { slug: string } }) {
           .eq("topic", slug)
           .order("module_number", { ascending: true });
         if (error) throw error;
-        setModules(data);
+
+        const modulesWithImages = await Promise.all(
+          data.map(async (module) => {
+            if (module.image) {
+              module.imageUrl = await fetchImageUrl(module.image);
+            }
+            return module;
+          }),
+        );
+
+        setModules(modulesWithImages);
       } catch (error) {
         console.error("Error fetching modules:", error);
       }
@@ -68,79 +84,86 @@ export default function TopicPage({ params }: { params: { slug: string } }) {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-gray-100 p-8">
-      <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-md">
-        {isEditing ? (
-          <form onSubmit={handleEdit} className="space-y-4">
-            <InputWithLabel
-              label="Title"
-              value={topic.name}
-              onChange={(v) => setTopic({ ...topic, name: v })}
-              required
-            />
-            <InputWithLabel
-              label="Description"
-              value={topic.description}
-              onChange={(v) => setTopic({ ...topic, description: v })}
-              required
-            />
-            <Button
-              type="submit"
-              disabled={isLoading}
-              size="md"
-              variant="primary"
-            >
-              {isLoading ? "Saving..." : "Save"}
-            </Button>
-          </form>
-        ) : (
-          <div>
-            <h1 className="mb-4 text-3xl font-bold">{topic.name}</h1>
-            <p className="mb-6 text-gray-700">{topic.description}</p>
-            <Button
-              onClick={() => setIsEditing(true)}
-              size="md"
-              
-            >
-              Edit Topic Name & Description
-            </Button>
-          </div>
-        )}
-        
-        <h2 className="mb-4 mt-8 text-2xl font-semibold">Modules</h2>
-        <ul className="space-y-2">
+    <main className="flex min-h-screen bg-gray-100">
+      <div className="flex-1 p-8">
+        <div className="mb-8">
+          {isEditing ? (
+            <form onSubmit={handleEdit} className="space-y-4">
+              <InputWithLabel
+                label="Title"
+                value={topic.name}
+                onChange={(v) => setTopic({ ...topic, name: v })}
+                required
+              />
+              <InputWithLabel
+                label="Description"
+                value={topic.description}
+                onChange={(v) => setTopic({ ...topic, description: v })}
+                required
+              />
+              <Button
+                type="submit"
+                disabled={isLoading}
+                size="md"
+                variant="primary"
+              >
+                {isLoading ? "Saving..." : "Save"}
+              </Button>
+            </form>
+          ) : (
+            <div className="mx-auto flex flex-col justify-center ">
+              <h1 className="mb-4 text-3xl font-bold ">{topic.name}</h1>
+              <p className="mb-6 text-gray-700">{topic.description}</p>
+              <Button
+                onClick={() => setIsEditing(true)}
+                className="w-85"
+              >
+                Edit Topic Name & Description
+              </Button>
+            </div>
+          )}
+        </div>
+
+        <div className="mb-6 flex flex-col items-center justify-between">
+          <h2 className="text-2xl font-semibold">Modules</h2>
+          <Button
+            onClick={() => router.push(`/topic/${slug}/create-module`)}
+            size="md"
+            variant="primary"
+            className="w-60"
+          >
+            Create Module
+          </Button>
+        </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {modules.map((module) => (
-            <li key={module.id} className="rounded-lg bg-gray-100 p-4 shadow">
-              {module.image && (
+            <div key={module.id} className="rounded-lg bg-white p-6 shadow-md">
+              {module.imageUrl && (
                 <img
-                  src={`https://${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${module.image}`}
+                  src={module.imageUrl}
                   alt={module.name}
-                  className="h-48 w-full rounded-t-lg object-cover"
+                  className="mb-4 h-48 w-full rounded-t-lg object-cover"
                 />
               )}
-              <h3 className="text-xl font-bold">{module.name}</h3>
-              <p className="text-gray-700">{module.description}</p>
-              <Button
-                onClick={() =>
-                  router.push(`/topic/${slug}/${module.id}`)
-                }
-                size="sm"
-                variant="outline"
-                className="mt-4"
-              >
-                Edit Module
-              </Button>
-            </li>
+              <h3 className="mb-2 text-xl font-bold">
+                Module {module.module_number}: {module.name}
+              </h3>
+              <p className="mb-4 text-gray-700">{module.description}</p>
+              <div className="flex justify-end">
+                <Button
+                  onClick={() =>
+                    router.push(`/topic/${slug}/${module.module_number}`)
+                  }
+                  size="sm"
+                  variant="outline"
+                  className="text-black"
+                >
+                  Edit Module
+                </Button>
+              </div>
+            </div>
           ))}
-        </ul>
-        <Button
-          onClick={() => router.push(`/topic/${slug}/create-module`)}
-          size="md"
-          variant="primary"
-          className="mt-6"
-        >
-          Create Module
-        </Button>
+        </div>
       </div>
     </main>
   );
