@@ -22,7 +22,7 @@ export default function CreateModule({ params }) {
   const [length, setLength] = useState("");
   const [image, setImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [markdown, setMarkdown] = useState("");
+  const [markdownJson, setMarkdownJson] = useState(null);
 
   const editor = useCreateBlockNote({});
 
@@ -46,9 +46,10 @@ export default function CreateModule({ params }) {
     fetchModules();
   }, [topic]);
 
-  const onChange = async () => {
-    const markdown = await editor.blocksToMarkdownLossy(editor.document);
-    setMarkdown(markdown);
+  const onChange = () => {
+    console.log("editor.document", editor.document);
+    const json = editor.document;
+    setMarkdownJson(json);
   };
 
   const handleImageUpload = async (file) => {
@@ -65,6 +66,7 @@ export default function CreateModule({ params }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("data", { name, description, moduleNumber, difficulty, length, markdownJson });
     setIsLoading(true);
 
     try {
@@ -78,12 +80,12 @@ export default function CreateModule({ params }) {
           difficulty,
           length,
           image: imagePath,
-          markdown,
+          markdown: markdownJson,
           topic,
         },
       ]);
 
-      if (error) throw error;
+      if (error) console.error("Error creating module:", error);
 
       router.push(`/topic/${topic}`);
     } catch (error) {
@@ -94,7 +96,7 @@ export default function CreateModule({ params }) {
   };
 
   const isFormValid =
-    name && description && moduleNumber && difficulty && length && markdown;
+    name && description && moduleNumber && difficulty && length && markdownJson;
 
   return (
     <main className="flex min-h-screen bg-gray-100 p-8">
