@@ -23,7 +23,6 @@ export default function EditModule({ params }) {
   const [image, setImage] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [markdownJson, setMarkdownJson] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
   const editor = useCreateBlockNote({});
@@ -51,7 +50,6 @@ export default function EditModule({ params }) {
         setDescription(data.description);
         setDifficulty(data.difficulty);
         setLength(data.length);
-        setMarkdownJson(data.markdown);
         if (data.image) {
           const publicUrl = await fetchImageUrl(data.image);
           setImageUrl(publicUrl);
@@ -72,11 +70,6 @@ export default function EditModule({ params }) {
       .getPublicUrl(imagePath);
 
     return data.publicUrl;
-  };
-
-  const onChange = () => {
-    const json = editor.document;
-    setMarkdownJson(json);
   };
 
   const handleImageUpload = async (file) => {
@@ -110,7 +103,6 @@ export default function EditModule({ params }) {
             difficulty,
             length,
             image: imagePath,
-            markdown: markdownJson,
           })
           .eq("topic", slug)
           .eq("module_number", moduleNumber);
@@ -127,7 +119,6 @@ export default function EditModule({ params }) {
             difficulty,
             length,
             image: imagePath,
-            markdown: markdownJson,
             topic: slug,
           },
         ]);
@@ -145,15 +136,14 @@ export default function EditModule({ params }) {
     }
   };
 
-  const isFormValid =
-    name && description && difficulty && length && markdownJson;
+  const isFormValid = name && description && difficulty && length;
 
   return (
     <main className="flex min-h-screen bg-gray-100 p-8">
       <div className="w-1/2 pr-4">
         <div className="h-full rounded-lg bg-white p-6 shadow-md">
-          <h2 className="mb-4 text-2xl font-bold">Markdown Editor</h2>
-          <BlockNoteView editor={editor} onChange={onChange} />
+          <h2 className="mb-4 text-2xl font-bold">Lessons</h2>
+          {/* fetch lessons here */}
         </div>
       </div>
       <div className="w-1/2 pl-4">

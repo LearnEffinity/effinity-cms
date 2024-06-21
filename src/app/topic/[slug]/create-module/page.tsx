@@ -22,7 +22,6 @@ export default function CreateModule({ params }) {
   const [length, setLength] = useState("");
   const [image, setImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [markdownJson, setMarkdownJson] = useState(null);
 
   const editor = useCreateBlockNote({});
 
@@ -46,11 +45,7 @@ export default function CreateModule({ params }) {
     fetchModules();
   }, [topic]);
 
-  const onChange = () => {
-    console.log("editor.document", editor.document);
-    const json = editor.document;
-    setMarkdownJson(json);
-  };
+  
 
   const handleImageUpload = async (file) => {
     const { data, error } = await supabase.storage
@@ -66,7 +61,7 @@ export default function CreateModule({ params }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("data", { name, description, moduleNumber, difficulty, length, markdownJson });
+    console.log("data", { name, description, moduleNumber, difficulty, length });
     setIsLoading(true);
 
     try {
@@ -80,7 +75,6 @@ export default function CreateModule({ params }) {
           difficulty,
           length,
           image: imagePath,
-          markdown: markdownJson,
           topic,
         },
       ]);
@@ -96,17 +90,12 @@ export default function CreateModule({ params }) {
   };
 
   const isFormValid =
-    name && description && moduleNumber && difficulty && length && markdownJson;
+    name && description && moduleNumber && difficulty && length ;
 
   return (
     <main className="flex min-h-screen bg-gray-100 p-8">
-      <div className="w-1/2 pr-4">
-        <div className="h-full rounded-lg bg-white p-6 shadow-md">
-          <h2 className="mb-4 text-2xl font-bold">Markdown Editor</h2>
-          <BlockNoteView editor={editor} onChange={onChange} />
-        </div>
-      </div>
-      <div className="w-1/2 pl-4">
+    
+      <div className="w-full pl-4">
         <div className="h-full rounded-lg bg-white p-6 shadow-md">
           <h1 className="mb-6 text-center text-2xl font-bold">
             Create New Module for {topic} as Module {moduleNumber}
