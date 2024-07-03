@@ -2,17 +2,22 @@
 import { createClient } from "@/utils/supabase/client";
 import { useState, useEffect } from "react";
 import { TopicCard, CreateTopicCard } from "@/components/dashboard/topicCard";
-
+import { useRouter } from "next/navigation";
 export default function Home() {
   const supabase = createClient();
   const [user, setUser] = useState(null);
   const [topics, setTopics] = useState([]);
+  const router = useRouter();
 
   useEffect(() => {
     async function getUser() {
       try {
         const { data, error } = await supabase.auth.getUser();
+        console.log(data);
         if (error) throw error;
+        if (!data) {
+          router.push("/auth/login");
+        }
         setUser(data.user);
       } catch (error) {
         console.error("Error fetching user:", error);
