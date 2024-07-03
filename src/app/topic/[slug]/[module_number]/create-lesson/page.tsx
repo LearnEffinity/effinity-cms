@@ -36,8 +36,7 @@ export default function CreateLesson({ params }) {
           .order("lesson_id", { ascending: false })
           .limit(1);
         if (error) throw error;
-        const nextLessonNumber =
-          data.length > 0 ? data[0].lesson_id + 1 : 1;
+        const nextLessonNumber = data.length > 0 ? data[0].lesson_id + 1 : 1;
         setLessonNumber(nextLessonNumber);
       } catch (error) {
         console.error("Error fetching lessons:", error);
@@ -103,15 +102,14 @@ export default function CreateLesson({ params }) {
     }
   };
 
-  const isFormValid =
-    name && description && lessonNumber  && markdownJson;
+  const isFormValid = name && description && lessonNumber && markdownJson;
 
   return (
     <main className="flex min-h-screen bg-gray-100 p-8">
       <div className="w-1/2 pr-4">
         <div className="h-full rounded-lg bg-white p-6 shadow-md">
           <h2 className="mb-4 text-2xl font-bold">Markdown Editor</h2>
-          <BlockNoteView editor={editor} onChange={onChange} />
+          <BlockNoteView theme={"light"} editor={editor} onChange={onChange} />
         </div>
       </div>
       <div className="w-1/2 pl-4">
@@ -139,7 +137,6 @@ export default function CreateLesson({ params }) {
               required
             />
 
-           
             <div className="mb-4">
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Image

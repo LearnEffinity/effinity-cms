@@ -33,7 +33,7 @@ export default function EditLesson({ params }) {
         .eq("topic", topic)
         .eq("module_id", moduleId)
         .eq("lesson_id", lessonId);
-  
+
       if (error) throw error;
     } catch (error) {
       console.error("Error saving to Supabase:", error);
@@ -49,9 +49,9 @@ export default function EditLesson({ params }) {
         .eq("module_id", moduleId)
         .eq("lesson_id", lessonId)
         .single();
-  
+
       if (error) throw error;
-  
+
       setName(data.name);
       setDescription(data.description);
       if (data.image) {
@@ -60,8 +60,10 @@ export default function EditLesson({ params }) {
           .getPublicUrl(data.image);
         setImageUrl(imageData.publicUrl);
       }
-  
-      return data.markdown ? JSON.parse(data.markdown) as PartialBlock[] : undefined;
+
+      return data.markdown
+        ? (JSON.parse(data.markdown) as PartialBlock[])
+        : undefined;
     } catch (error) {
       console.error("Error loading from Supabase:", error);
       return undefined;
@@ -107,16 +109,16 @@ export default function EditLesson({ params }) {
       }
 
       const { error } = await supabase
-      .from("lessons")
-      .update({
-        name,
-        description,
-        image: imagePath,
-        markdown: JSON.stringify(editor.document),
-      })
-      .eq("topic", topic)
-      .eq("module_id", moduleId)
-      .eq("lesson_id", lessonId);
+        .from("lessons")
+        .update({
+          name,
+          description,
+          image: imagePath,
+          markdown: JSON.stringify(editor.document),
+        })
+        .eq("topic", topic)
+        .eq("module_id", moduleId)
+        .eq("lesson_id", lessonId);
 
       if (error) throw error;
 
@@ -137,9 +139,10 @@ export default function EditLesson({ params }) {
   return (
     <main className="flex min-h-screen bg-gray-100 p-8">
       <div className="w-1/2 pr-4">
-        <div className="h-full rounded-lg bg-white p-6 shadow-md">
+        <div className="h-full rounded-lg  p-6 shadow-md">
           <h2 className="mb-4 text-2xl font-bold">Markdown Editor</h2>
           <BlockNoteView
+            theme={"light"}
             editor={editor}
             onChange={() => {
               saveToSupabase(editor.document);
