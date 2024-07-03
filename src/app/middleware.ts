@@ -37,9 +37,9 @@ export async function middleware(request: NextRequest) {
     const userRole = userData?.role
     console.log("User role:", userRole);
 
-    if (userRole !== 'admin' && !pathname.startsWith('/auth') && pathname !== '/gtfo') {
-      console.log("Non-admin accessing protected route, redirecting to /gtfo");
-      return Response.redirect(new URL('/gtfo', request.url))
+    if (userRole !== 'admin' && !pathname.startsWith('/auth') && pathname !== '/no') {
+      console.log("Non-admin accessing protected route, redirecting to /no");
+      return Response.redirect(new URL('/no', request.url))
     }
 
     if (pathname.startsWith('/auth') && pathname !== '/auth/reset') {
