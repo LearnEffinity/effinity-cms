@@ -5,11 +5,6 @@ import { createClient } from "@/utils/supabase/client";
 import Button from "@/components/form/Button";
 import { InputWithLabel } from "@/components/form/Input";
 
-import "@blocknote/core/fonts/inter.css";
-import { useCreateBlockNote } from "@blocknote/react";
-import { BlockNoteView } from "@blocknote/mantine";
-import "@blocknote/mantine/style.css";
-
 export default function EditModule({ params }) {
   const supabase = createClient();
   const router = useRouter();
@@ -24,9 +19,7 @@ export default function EditModule({ params }) {
   const [imageUrl, setImageUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-
-  const editor = useCreateBlockNote({});
-
+  const [lessons, setLessons] = useState([]);
   useEffect(() => {
     async function fetchModule() {
       try {
@@ -54,10 +47,28 @@ export default function EditModule({ params }) {
           const publicUrl = await fetchImageUrl(data.image);
           setImageUrl(publicUrl);
         }
-
-        editor.insertBlocks(data.markdown, editor.document[0].id, "before");
       } catch (error) {
         console.error("Error fetching module:", error);
+      }
+    }
+
+    async function fetchLessons() {
+      try {
+        const { data, error } = await supabase
+          .from("lessons")
+          .select("*")
+          .eq("topic", slug)
+          .eq("module_number", moduleNumber)
+          .order("lesson_id", { ascending: true });
+
+        if (error) {
+          throw error;
+        }
+        setLessons(data);
+
+        console.log(data);
+      } catch (error) {
+        console.error("Error fetching lessons:", error);
       }
     }
 
@@ -143,7 +154,20 @@ export default function EditModule({ params }) {
       <div className="w-1/2 pr-4">
         <div className="h-full rounded-lg bg-white p-6 shadow-md">
           <h2 className="mb-4 text-2xl font-bold">Lessons</h2>
-          {/* fetch lessons here */}
+          <ul className="space-y-4">
+            {lessons.map((lesson) => (
+              <li key={lesson.id} className="flex items-center">
+                <span className="mr-4">{lesson.lesson_id}</span>
+                <span>{lesson.name}</span>
+              </li>
+            ))}
+          </ul>
+          <Button
+            onClick={() => router.push(`/topic/${slug}/${moduleNumber}/create-lesson`)}
+            className="mt-4"
+          >
+            Add Lesson
+          </Button>
         </div>
       </div>
       <div className="w-1/2 pl-4">

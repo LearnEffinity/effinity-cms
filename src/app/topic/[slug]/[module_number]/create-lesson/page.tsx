@@ -10,16 +10,15 @@ import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
 
-export default function CreateModule({ params }) {
+export default function CreateLesson({ params }) {
   const supabase = createClient();
   const router = useRouter();
   const topic = params.slug;
+  const moduleNumber = parseInt(params.module_number);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [moduleNumber, setModuleNumber] = useState(1);
-  const [difficulty, setDifficulty] = useState("");
-  const [length, setLength] = useState("");
+  const [lessonNumber, setLessonNumber] = useState(1);
   const [image, setImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [markdownJson, setMarkdownJson] = useState(null);
@@ -27,24 +26,25 @@ export default function CreateModule({ params }) {
   const editor = useCreateBlockNote({});
 
   useEffect(() => {
-    async function fetchModules() {
+    async function fetchLessons() {
       try {
         const { data, error } = await supabase
-          .from("modules")
-          .select("module_number")
+          .from("lessons")
+          .select("lesson_id")
           .eq("topic", topic)
-          .order("module_number", { ascending: false })
+          .eq("module_id", moduleNumber)
+          .order("lesson_id", { ascending: false })
           .limit(1);
         if (error) throw error;
-        const nextModuleNumber =
-          data.length > 0 ? data[0].module_number + 1 : 1;
-        setModuleNumber(nextModuleNumber);
+        const nextLessonNumber =
+          data.length > 0 ? data[0].lesson_id + 1 : 1;
+        setLessonNumber(nextLessonNumber);
       } catch (error) {
-        console.error("Error fetching modules:", error);
+        console.error("Error fetching lessons:", error);
       }
     }
-    fetchModules();
-  }, [topic]);
+    fetchLessons();
+  }, [topic, moduleNumber]);
 
   const onChange = () => {
     console.log("editor.document", editor.document);
@@ -53,13 +53,17 @@ export default function CreateModule({ params }) {
   };
 
   const handleImageUpload = async (file) => {
+    let name = file.name;
+
+    name = `${Date.now()}-${file.name}`;
     const { data, error } = await supabase.storage
-      .from("module_images")
-      .upload(`public/${file.name}`, file);
+      .from("lesson_images")
+      .upload(`public/${name}`, file);
 
     if (error) {
       throw error;
     }
+    console.log("image data", data);
 
     return data.path;
   };
@@ -69,9 +73,7 @@ export default function CreateModule({ params }) {
     console.log("data", {
       name,
       description,
-      moduleNumber,
-      difficulty,
-      length,
+      lessonNumber,
       markdownJson,
     });
     setIsLoading(true);
@@ -83,27 +85,26 @@ export default function CreateModule({ params }) {
         {
           name,
           description,
-          module_number: moduleNumber,
-          difficulty,
-          length,
+          module_id: moduleNumber,
+          lesson_id: lessonNumber,
           image: imagePath,
           markdown: markdownJson,
           topic,
         },
       ]);
 
-      if (error) console.error("Error creating module:", error);
+      if (error) throw error;
 
-      router.push(`/topic/${topic}`);
+      router.push(`/topic/${topic}/${moduleNumber}/${lessonNumber}`);
     } catch (error) {
-      console.error("Error creating module:", error);
+      console.error("Error creating lesson:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const isFormValid =
-    name && description && moduleNumber && difficulty && length && markdownJson;
+    name && description && lessonNumber  && markdownJson;
 
   return (
     <main className="flex min-h-screen bg-gray-100 p-8">
@@ -116,11 +117,11 @@ export default function CreateModule({ params }) {
       <div className="w-1/2 pl-4">
         <div className="h-full rounded-lg bg-white p-6 shadow-md">
           <h1 className="mb-6 text-center text-2xl font-bold">
-            Create New Module for {topic} as Module {moduleNumber}
+            Create New Lesson for {topic} Module {moduleNumber}
           </h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <InputWithLabel
-              label="Module Name"
+              label="Lesson Name"
               value={name}
               onChange={(v) => setName(v)}
               required
@@ -132,35 +133,13 @@ export default function CreateModule({ params }) {
               required
             />
             <InputWithLabel
-              label="Module Number"
-              value={moduleNumber}
+              label="Lesson Number"
+              value={lessonNumber}
               readOnly
               required
             />
-            <div className="mb-4">
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Difficulty
-              </label>
-              <select
-                value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                required
-              >
-                <option value="" disabled>
-                  Select difficulty
-                </option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-              </select>
-            </div>
-            <InputWithLabel
-              label="Length (in minutes)"
-              value={length}
-              onChange={(v) => setLength(v)}
-              required
-            />
+
+           
             <div className="mb-4">
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Image
@@ -169,7 +148,6 @@ export default function CreateModule({ params }) {
                 type="file"
                 onChange={(e) => setImage(e.target.files[0])}
                 className="mt-1 block w-full text-sm text-gray-500"
-                required
               />
             </div>
             <Button
@@ -178,7 +156,7 @@ export default function CreateModule({ params }) {
               size="md"
               variant="primary"
             >
-              {isLoading ? "Creating..." : "Create Module"}
+              {isLoading ? "Creating..." : "Create Lesson"}
             </Button>
           </form>
         </div>
