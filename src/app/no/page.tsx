@@ -5,20 +5,8 @@ import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-
-function Video() {
-  return (
-    <video 
-      className="absolute top-0 left-0 w-full h-full object-cover z-0 opacity-50"
-      autoPlay 
-      loop 
-      playsInline
-    >
-      <source src="/monkey.mp4" type="video/mp4" />
-      Your browser does not support the video tag.
-    </video>
-  );
-}
+import dynamic from "next/dynamic";
+import Video from "@/components/Video";
 
 export default function Home() {
   const supabase = createClient();
@@ -32,16 +20,16 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-background relative overflow-hidden">
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background p-4">
       <Video />
-      <Card className="w-full max-w-md z-10 bg-white">
+      <Card className="z-10 w-full max-w-md bg-white">
         <CardHeader>
-          <CardTitle className="text-3xl font-bold text-center text-red-600">
+          <CardTitle className="text-center text-3xl font-bold text-red-600">
             Access Denied
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center">
-          <p className="text-xl mb-6">You don't have admin access!</p>
+          <p className="mb-6 text-xl">You don't have admin access!</p>
           <Button
             className="w-full"
             onClick={handleSignOut}
