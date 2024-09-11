@@ -1,38 +1,32 @@
-"use client";
-import { createClient } from "@/utils/supabase/client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { createServerActionClient } from '@supabase/auth-helpers-nextjs'
+import { revalidatePath } from 'next/cache'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import Button from "@/components/form/Button";
 import { InputWithLabel } from "@/components/form/Input";
 
 export default function CreateTopic() {
-  const supabase = createClient();
-  const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [slug, setSlug] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  async function createTopic(formData: FormData) {
+    'use server'
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
+    const title = formData.get('title') as string
+    const description = formData.get('description') as string
+    const slug = formData.get('slug') as string
 
-    try {
-      const { data, error } = await supabase
-        .from("topics")
-        .insert([{ name: title, description, slug }]);
-      if (error) throw error;
-      console.log("Topic created:", data);
-      setIsLoading(false);
+    const supabase = createServerActionClient({ cookies })
 
-      router.push("/");
-    } catch (error) {
-      console.error("Error creating topic:", error);
-    } finally {
+    const { data, error } = await supabase
+      .from('topics')
+      .insert([{ name: title, description, slug }])
+
+    if (error) {
+      console.error('Error creating topic:', error)
+      return
     }
-  };
 
-  const isFormValid = title && description && slug;
+    revalidatePath('/')
+    redirect('/')
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-100 p-8">
@@ -40,30 +34,29 @@ export default function CreateTopic() {
         <h1 className="mb-6 text-center text-2xl font-bold">
           Create New Topic
         </h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form action={createTopic} className="space-y-4">
           <InputWithLabel
+            name="title"
             label="Title"
-            value={title}
-            onChange={(v) => setTitle(v)}
+            required
           />
           <InputWithLabel
+            name="description"
             label="Description"
-            value={description}
-            onChange={(v) => setDescription(v)}
+            required
           />
           <InputWithLabel
+            name="slug"
             type="text"
             label="Slug (note you can't change this later)"
-            value={slug}
-            onChange={(v) => setSlug(v)}
+            required
           />
           <Button
             type="submit"
-            disabled={!isFormValid || isLoading}
             size="md"
             variant="primary"
           >
-            {isLoading ? "Creating..." : "Create Topic"}
+            Create Topic
           </Button>
         </form>
       </div>

@@ -3,7 +3,7 @@ import { Block, BlockNoteEditor, PartialBlock } from "@blocknote/core";
 import "@blocknote/core/fonts/inter.css";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import Button from "@/components/form/Button";
@@ -21,9 +21,7 @@ export default function EditLesson({ params }) {
   const [image, setImage] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [initialContent, setInitialContent] = useState<
-    PartialBlock[] | undefined | "loading"
-  >("loading");
+  const [editor, setEditor] = useState<BlockNoteEditor | null>(null);
 
   async function saveToSupabase(jsonBlocks: Block[]) {
     try {
@@ -31,8 +29,8 @@ export default function EditLesson({ params }) {
         .from("lessons")
         .update({ markdown: JSON.stringify(jsonBlocks) })
         .eq("topic", topic)
-        .eq("module_id", moduleId)
-        .eq("lesson_id", lessonId);
+        .eq("module_number", moduleId)
+        .eq("lesson_number", lessonId);
 
       if (error) throw error;
     } catch (error) {
@@ -46,10 +44,10 @@ export default function EditLesson({ params }) {
         .from("lessons")
         .select("*")
         .eq("topic", topic)
-        .eq("module_id", moduleId)
-        .eq("lesson_id", lessonId)
+        .eq("module_number", moduleId)
+        .eq("lesson_number", lessonId)
         .single();
-
+      console.log("data", data);
       if (error) throw error;
 
       setName(data.name);
@@ -62,7 +60,7 @@ export default function EditLesson({ params }) {
       }
 
       return data.markdown
-        ? (JSON.parse(data.markdown) as PartialBlock[])
+        ? JSON.parse(data.markdown) as PartialBlock[]
         : undefined;
     } catch (error) {
       console.error("Error loading from Supabase:", error);
@@ -72,17 +70,15 @@ export default function EditLesson({ params }) {
 
   useEffect(() => {
     loadFromSupabase().then((content) => {
-      setInitialContent(content);
+      if (content) {
+        const newEditor = BlockNoteEditor.create({ initialContent: content });
+        setEditor(newEditor);
+      } else {
+        const newEditor = BlockNoteEditor.create();
+        setEditor(newEditor);
+      }
     });
   }, [topic, moduleId, lessonId]);
-
-  const editor = useMemo(() => {
-    if (initialContent === "loading") {
-      return undefined;
-    }
-    console.log("initialContent", initialContent);
-    return BlockNoteEditor.create({ initialContent });
-  }, [initialContent]);
 
   const handleImageUpload = async (file) => {
     let name = `${Date.now()}-${file.name}`;
@@ -114,11 +110,11 @@ export default function EditLesson({ params }) {
           name,
           description,
           image: imagePath,
-          markdown: JSON.stringify(editor.document),
+          markdown: JSON.stringify(editor?.document),
         })
         .eq("topic", topic)
-        .eq("module_id", moduleId)
-        .eq("lesson_id", lessonId);
+        .eq("module_number", moduleId)
+        .eq("lesson_number", lessonId);
 
       if (error) throw error;
 
@@ -132,7 +128,7 @@ export default function EditLesson({ params }) {
 
   const isFormValid = name && description && editor?.document;
 
-  if (editor === undefined) {
+  if (!editor) {
     return "Loading content...";
   }
 

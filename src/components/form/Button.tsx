@@ -1,3 +1,4 @@
+"use client"
 import Icon from "../Icon";
 
 import capitalize from "@/utils/capitalize";
@@ -14,7 +15,10 @@ const variantMap = {
   outline:
     "bg-button-surface border border-button text-brand-accent hover:border-button-hover hover:text-brand-tertiary focus:border-button-pressed focus:text-button-pressed disabled:text-brand-quaternary disabled:border-button-disabled disabled:text-button-disabled",
 };
-
+const disabledMap = {
+  primary: "bg-gray-300 text-gray-500 cursor-not-allowed",
+  outline: "border-gray-300 text-gray-400 cursor-not-allowed",
+};
 export default function Button({
   children,
   className,
@@ -32,7 +36,12 @@ export default function Button({
 } & React.ComponentProps<"button">) {
   return (
     <button
-      className={`w-full rounded-lg bg-button font-medium text-white transition-colors hover:bg-button-hover focus:bg-button-pressed disabled:bg-button-disabled ${styleMap[size]} ${variantMap[variant]} ${className}`}
+      className={`
+        w-full rounded-lg font-medium transition-colors
+        ${styleMap[size]}
+        ${disabled ? disabledMap[variant] : variantMap[variant]}
+        ${className}
+      `}
       disabled={disabled}
       onClick={onClick}
       type={type}
@@ -41,6 +50,7 @@ export default function Button({
     </button>
   );
 }
+
 
 // ! The design for this is not finished in Figma; we still need hover/focus/disabled states.
 // ! I'm using the input component as a reference for the design for the time being.

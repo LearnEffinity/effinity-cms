@@ -1,121 +1,102 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
+
+import { useState, useEffect } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useRouter } from 'next/navigation';
 import Button from "@/components/form/Button";
 import { InputWithLabel } from "@/components/form/Input";
 
-import "@blocknote/core/fonts/inter.css";
-import { useCreateBlockNote } from "@blocknote/react";
-import { BlockNoteView } from "@blocknote/mantine";
-import "@blocknote/mantine/style.css";
-
-export default function CreateModule({ params }) {
-  const supabase = createClient();
+export default function CreateModule({ params, nextModuleNumber }) {
+  const supabase = createClientComponentClient();
   const router = useRouter();
   const topic = params.slug;
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [moduleNumber, setModuleNumber] = useState(1);
-  const [difficulty, setDifficulty] = useState("");
-  const [length, setLength] = useState("");
-  const [image, setImage] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    difficulty: '',
+    length: '',
+    image: null,
+  });
 
-  const editor = useCreateBlockNote({});
+  const [isFormValid, setIsFormValid] = useState(false);
 
   useEffect(() => {
-    async function fetchModules() {
-      try {
-        const { data, error } = await supabase
-          .from("modules")
-          .select("module_number")
-          .eq("topic", topic)
-          .order("module_number", { ascending: false })
-          .limit(1);
-        if (error) throw error;
-        const nextModuleNumber =
-          data.length > 0 ? data[0].module_number + 1 : 1;
-        setModuleNumber(nextModuleNumber);
-      } catch (error) {
-        console.error("Error fetching modules:", error);
-      }
-    }
-    fetchModules();
-  }, [topic]);
+    const { name, description, difficulty, length, image } = formData;
+    setIsFormValid(name && description && difficulty && length && image);
+  }, [formData]);
 
-  
-
-  const handleImageUpload = async (file) => {
-    const { data, error } = await supabase.storage
-      .from("module_images")
-      .upload(`public/${file.name}`, file);
-
-    if (error) {
-      throw error;
-    }
-
-    return data.path;
+  const handleInputChange = (e) => {
+    const { name, value, files } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: files ? files[0] : value
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("data", { name, description, moduleNumber, difficulty, length });
-    setIsLoading(true);
+    if (!isFormValid) return;
 
-    try {
-      const imagePath = image ? await handleImageUpload(image) : null;
+    const { name, description, difficulty, length, image } = formData;
 
-      const { data, error } = await supabase.from("modules").insert([
-        {
-          name,
-          description,
-          module_number: moduleNumber,
-          difficulty,
-          length,
-          image: imagePath,
-          topic,
-        },
-      ]);
+    let imagePath = null;
+    if (image) {
+      const { data, error } = await supabase.storage
+        .from("module_images")
+        .upload(`public/${image.name}`, image);
 
-      if (error) console.error("Error creating module:", error);
-
-      router.push(`/topic/${topic}`);
-    } catch (error) {
-      console.error("Error creating module:", error);
-    } finally {
-      setIsLoading(false);
+      if (error) {
+        console.error("Error uploading image:", error);
+        return;
+      }
+      imagePath = data.path;
     }
-  };
 
-  const isFormValid =
-    name && description && moduleNumber && difficulty && length ;
+    const { data, error } = await supabase.from("modules").insert([
+      {
+        name,
+        description,
+        module_number: nextModuleNumber,
+        difficulty,
+        length,
+        image: imagePath,
+        topic,
+      },
+    ]);
+
+    if (error) {
+      console.error("Error creating module:", error);
+      return;
+    }
+
+    router.push(`/topic/${topic}`);
+  };
 
   return (
     <main className="flex min-h-screen bg-gray-100 p-8">
-    
       <div className="w-full pl-4">
         <div className="h-full rounded-lg bg-white p-6 shadow-md">
           <h1 className="mb-6 text-center text-2xl font-bold">
-            Create New Module for {topic} as Module {moduleNumber}
+            Create New Module for {topic} as Module {nextModuleNumber}
           </h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <InputWithLabel
+              name="name"
               label="Module Name"
-              value={name}
-              onChange={(v) => setName(v)}
               required
+              onChange={handleInputChange}
             />
             <InputWithLabel
+              name="description"
               label="Description"
-              value={description}
-              onChange={(v) => setDescription(v)}
               required
+              onChange={handleInputChange}
             />
             <InputWithLabel
+              name="module_number"
               label="Module Number"
-              value={moduleNumber}
+              value={nextModuleNumber}
               readOnly
               required
             />
@@ -124,24 +105,22 @@ export default function CreateModule({ params }) {
                 Difficulty
               </label>
               <select
-                value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value)}
+                name="difficulty"
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 required
+                onChange={handleInputChange}
               >
-                <option value="" disabled>
-                  Select difficulty
-                </option>
+                <option value="" disabled selected>Select difficulty</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
               </select>
             </div>
             <InputWithLabel
+              name="length"
               label="Length (in minutes)"
-              value={length}
-              onChange={(v) => setLength(v)}
               required
+              onChange={handleInputChange}
             />
             <div className="mb-4">
               <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -149,18 +128,19 @@ export default function CreateModule({ params }) {
               </label>
               <input
                 type="file"
-                onChange={(e) => setImage(e.target.files[0])}
+                name="image"
                 className="mt-1 block w-full text-sm text-gray-500"
                 required
+                onChange={handleInputChange}
               />
             </div>
             <Button
               type="submit"
-              disabled={!isFormValid || isLoading}
               size="md"
               variant="primary"
+              disabled={!isFormValid}
             >
-              {isLoading ? "Creating..." : "Create Module"}
+              Create Module
             </Button>
           </form>
         </div>
