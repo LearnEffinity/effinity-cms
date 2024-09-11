@@ -24,7 +24,7 @@ export default async function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-neutral-50 p-8">
+    <main className="flex min-h-screen flex-col items-center bg-background p-8">
       <div className="w-full max-w-5xl">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-[50px] font-bold text-neutral-700">
