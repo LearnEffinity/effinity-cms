@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -15,13 +16,19 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export default function LoginPage() {
   const supabase = createClient();
+  const router = useRouter();
 
   async function signInWithGoogle() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
+    if (error) {
+      console.error("Failed to sign in with Google:", error.message);
+    }
   }
-
   return (
     <div className=" relative hidden h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
 
@@ -50,7 +57,7 @@ export default function LoginPage() {
               Enter your email below to log in to your account
             </p>
           </div>
-          <LoginForm signInWithGoogle={signInWithGoogle} supabase={supabase} />
+          <LoginForm signInWithGoogle={signInWithGoogle} supabase={supabase} router={router} />
           
         </div>
       </div>
@@ -61,9 +68,11 @@ export default function LoginPage() {
 function LoginForm({
   supabase,
   signInWithGoogle,
+  router,
 }: {
   supabase: SupabaseClient<any, "public", any>;
   signInWithGoogle: () => void;
+  router: any;
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -85,6 +94,7 @@ function LoginForm({
       setError("Failed to login: " + error.message);
     } else {
       console.log("Logged in:", data);
+      router.push("/");
     }
 
     setIsLoading(false);

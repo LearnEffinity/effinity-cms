@@ -2,6 +2,7 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { TopicCard, CreateTopicCard } from "@/components/dashboard/topicCard";
 import { redirect } from 'next/navigation'
+import { Button } from "@/components/ui/button"
 
 export default async function Home() {
   const supabase = createServerComponentClient({ cookies })
@@ -23,18 +24,15 @@ export default async function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-gray-100 p-8">
+    <main className="flex min-h-screen flex-col items-center bg-neutral-50 p-8">
       <div className="w-full max-w-5xl">
         <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-[50px] font-bold">
+          <h1 className="text-[50px] font-bold text-neutral-700">
             Welcome {user.user_metadata.name || user.user_metadata.first_name}
           </h1>
-          <a
-            className="rounded-lg bg-brand-primary px-8 py-4 text-center text-white"
-            href="/signout"
-          >
-            Sign out
-          </a>
+          <Button variant="default" asChild>
+            <a href="/signout">Sign out</a>
+          </Button>
         </div>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {topics && topics.map((topic) => (
