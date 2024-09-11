@@ -1,4 +1,3 @@
-// app/topic/[slug]/TopicPageClient.tsx
 "use client";
 
 import { useState } from "react";
@@ -78,7 +77,7 @@ export default function TopicPageClient({ initialTopic, initialModules, slug }) 
         <div className="mb-6 flex flex-col items-center justify-between">
           <h2 className="text-2xl font-semibold">Modules</h2>
           <Button
-            onClick={() => router.push(`/topic/${slug}/create-module`)}
+            onClick={() => router.push(`/${slug}/create-module`)}
             size="md"
             variant="primary"
             className="w-60"

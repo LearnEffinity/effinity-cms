@@ -1,4 +1,3 @@
-// app/topic/[slug]/ModuleCard.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -22,7 +21,7 @@ export default function ModuleCard({ module, slug }) {
       <p className="mb-4 text-gray-700">{module.description}</p>
       <div className="flex justify-end">
         <Button
-          onClick={() => router.push(`/topic/${slug}/${module.module_number}`)}
+          onClick={() => router.push(`/${slug}/${module.module_number}`)}
           size="sm"
           variant="outline"
         >

@@ -118,7 +118,7 @@ export default function EditLesson({ params }) {
 
       if (error) throw error;
 
-      router.push(`/topic/${topic}/module/${moduleId}`);
+      router.push(`/${topic}/module/${moduleId}`);
     } catch (error) {
       console.error("Error updating lesson:", error);
     } finally {

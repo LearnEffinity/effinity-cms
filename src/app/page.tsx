@@ -24,17 +24,21 @@ export default async function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-background p-8">
-      <div className="w-full max-w-5xl">
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-[50px] font-bold text-neutral-700">
-            Welcome {user.user_metadata.name || user.user_metadata.first_name}
-          </h1>
-          <Button variant="default" asChild>
+    <main className="min-h-screen bg-background p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-12 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-neutral-800 mb-2">
+              Welcome, {user.user_metadata.name || user.user_metadata.first_name}
+            </h1>
+            <p className="text-lg text-neutral-600">Manage your topics and lessons</p>
+          </div>
+          <Button variant="outline" asChild>
             <a href="/signout">Sign out</a>
           </Button>
         </div>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <CreateTopicCard />
           {topics && topics.map((topic) => (
             <TopicCard
               key={topic.name}
@@ -43,7 +47,6 @@ export default async function Home() {
               slug={topic.slug}
             />
           ))}
-          <CreateTopicCard />
         </div>
       </div>
     </main>

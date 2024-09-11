@@ -56,7 +56,7 @@ export default function EditModuleForm({ initialModule, initialImageUrl, slug, m
         throw error;
       }
 
-      router.push(`/topic/${slug}`);
+      router.push(`/${slug}`);
     } catch (error) {
       console.error("Error saving module:", error);
     } finally {

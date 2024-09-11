@@ -13,7 +13,7 @@ export default function LessonsList({ lessons, slug, moduleNumber }) {
       <ul className="space-y-4">
         {lessons.map((lesson) => (
           <li key={lesson.id} className="flex items-center">
-            <Link href={`/topic/${slug}/${moduleNumber}/${lesson.lesson_number}`}>
+            <Link href={`/${slug}/${moduleNumber}/${lesson.lesson_number}`}>
               <span className="mr-4">{lesson.lesson_number}</span>
               <span>{lesson.name}</span>
             </Link>
@@ -21,7 +21,7 @@ export default function LessonsList({ lessons, slug, moduleNumber }) {
         ))}
       </ul>
       <Button
-        onClick={() => router.push(`/topic/${slug}/${moduleNumber}/create-lesson`)}
+        onClick={() => router.push(`/${slug}/${moduleNumber}/create-lesson`)}
         className="mt-4"
       >
         Add Lesson

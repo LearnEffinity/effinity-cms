@@ -70,7 +70,7 @@ export default function CreateModule({ params, nextModuleNumber }) {
       return;
     }
 
-    router.push(`/topic/${topic}`);
+    router.push(`/${topic}`);
   };
 
   return (

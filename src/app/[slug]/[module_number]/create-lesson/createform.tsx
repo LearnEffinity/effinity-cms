@@ -70,7 +70,7 @@ export default function CreateLessonForm({ topic, moduleNumber, initialLessonNum
 
       if (error) throw error;
 
-      router.push(`/topic/${topic}/${moduleNumber}/${initialLessonNumber}`);
+      router.push(`/${topic}/${moduleNumber}/${initialLessonNumber}`);
     } catch (error) {
       console.error("Error creating lesson:", error);
     } finally {

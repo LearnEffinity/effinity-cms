@@ -54,7 +54,7 @@ export default async function EditModule({ params }) {
   const imageUrl = module?.image ? await fetchImageUrl(module.image) : '';
 
   if (!module) {
-    redirect(`/topic/${slug}`);
+    redirect(`/${slug}`);
   }
 
   return (

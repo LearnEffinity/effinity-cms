@@ -32,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`h-max min-h-screen text-text-primary ${poppins.className}`}
+        className={`h-max min-h-screen bg-background text-text-primary ${poppins.className}`}
       >
         <BreadcrumbWrapper>
        {children}
