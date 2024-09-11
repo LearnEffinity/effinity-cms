@@ -40,10 +40,7 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  console.log(
-    "User authentication status:",
-    user ? "Authenticated" : "Not authenticated",
-  );
+  console.log("User:", user);
 
   const pathname = request.nextUrl.pathname;
   console.log("Current pathname:", pathname);
