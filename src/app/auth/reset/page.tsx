@@ -1,10 +1,13 @@
 "use client";
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useSearchParams, useRouter } from "next/navigation";
-
-import { InputWithLabel } from "@/components/form/Input";
-import Button from "@/components/form/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 function ResetPasswordPage() {
   const supabase = createClient();
@@ -12,67 +15,102 @@ function ResetPasswordPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const passwordsMatch = newPassword === confirmPassword;
+  const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
   const code = searchParams.get("code");
-  if (!code) {
-    return <p>Invalid reset code.</p>;
-  }
+
   useEffect(() => {
     async function checkSession() {
+      if (!code) return;
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (error) {
         console.error("Error validating reset code:", error.message);
+        setError("Invalid reset code.");
         return;
       }
       setValidSession(true);
-      const session = await supabase.auth.getSession()
-      console.log("Session:", session);
-
     }
     checkSession();
-  }
-  , [code]);
+  }, [code]);
+
   const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
     if (newPassword !== confirmPassword) {
       setError("Passwords do not match.");
+      setIsLoading(false);
       return;
     }
-    const { data, error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-    if (error) {
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      if (error) throw error;
+      router.push("/");
+    } catch (error) {
       setError(error.message);
-      return;
+    } finally {
+      setIsLoading(false);
     }
-    setError("");
-    router.push("/");
   };
 
+  if (!code) {
+    return (
+      <div className="container mx-auto max-w-md pt-16">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>Invalid reset code.</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-full flex-col gap-8 py-8">
-      <hgroup className="flex flex-col gap-1">
-        <h1 className="text-4xl font-semibold">Reset Your Password</h1>
-      </hgroup>
-      <form onSubmit={handleResetPassword} className="flex flex-col gap-4">
-        <InputWithLabel
-          label="New Password"
-          value={newPassword}
-          onChange={(v) => setNewPassword(v)}
-          type="password"
-        />
-        <InputWithLabel
-          label="Confirm Password"
-          value={confirmPassword}
-          onChange={(v) => setConfirmPassword(v)}
-          type="password"
-        />
-        <Button className="mt-4" type="submit">
-          Reset Password
-        </Button>
-      </form>
+    <div className="container mx-auto max-w-md pt-16">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Reset Your Password</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">New Password</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Resetting..." : "Reset Password"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

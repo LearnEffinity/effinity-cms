@@ -2,46 +2,74 @@
 import React, { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-
-import { InputWithLabel } from "@/components/form/Input";
-import Button from "@/components/form/Button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  const sendResetLink = async () => {
-    const clientUrl = process.env.NEXT_PUBLIC_CLIENT_URL;
+  const sendResetLink = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
+    const clientUrl = process.env.NEXT_PUBLIC_CLIENT_URL;
     const supabase = createClient();
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${clientUrl}/auth/reset`,
-    });
-    if (error) {
-      console.log("Error:", error.message);
-      return;
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${clientUrl}/auth/reset`,
+      });
+      if (error) throw error;
+      router.push("/auth/forgot-password/sent/");
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
     }
-    router.push("/auth/forgot-password/sent/");
-    console.log("Email:", email);
   };
 
   return (
-    <div className="flex h-full flex-col gap-8 py-8">
-      <hgroup className="flex flex-col gap-1">
-        <h1 className="text-4xl font-semibold">Forgot your password?</h1>
-        <p className="text-lg text-text-secondary">
-          No worries, we&apos;ll send you reset instructions.
-        </p>
-      </hgroup>
-      <form className="flex flex-col gap-4">
-        <InputWithLabel
-          label="Email"
-          value={email}
-          onChange={(v) => setEmail(v)}
-          type="email"
-        />
-        <Button onClick={sendResetLink}>Reset Password</Button>
-      </form>
+    <div className="container mx-auto max-w-md pt-16">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Forgot your password?</CardTitle>
+          <CardDescription>
+            No worries, we'll send you reset instructions.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={sendResetLink} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Sending..." : "Reset Password"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
