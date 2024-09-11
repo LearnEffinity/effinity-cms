@@ -1,15 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import Button from "@/components/form/Button";
-import { InputWithLabel } from "@/components/form/Input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Maximize2, X } from "lucide-react";
 
 import "@blocknote/core/fonts/inter.css";
 import { useCreateBlockNote } from "@blocknote/react";
-import { BlockNoteView } from "@blocknote/mantine";
-import "@blocknote/mantine/style.css";
+import { BlockNoteView } from "@blocknote/mantine"
+import "@blocknote/core/style.css";
 
 export default function CreateLessonForm({ topic, moduleNumber, initialLessonNumber }) {
   const supabase = createClientComponentClient();
@@ -20,14 +25,14 @@ export default function CreateLessonForm({ topic, moduleNumber, initialLessonNum
   const [image, setImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [markdownJson, setMarkdownJson] = useState(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
-  const editor = useCreateBlockNote({});
+  const editor = useCreateBlockNote();
 
-  const onChange = () => {
-    console.log("editor.document", editor.document);
+  const onChange = useCallback(() => {
     const json = editor.document;
     setMarkdownJson(json);
-  };
+  }, [editor]);
 
   const handleImageUpload = async (file) => {
     let name = `${Date.now()}-${file.name}`;
@@ -45,12 +50,6 @@ export default function CreateLessonForm({ topic, moduleNumber, initialLessonNum
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("data", {
-      name,
-      description,
-      initialLessonNumber,
-      markdownJson,
-    });
     setIsLoading(true);
 
     try {
@@ -60,7 +59,7 @@ export default function CreateLessonForm({ topic, moduleNumber, initialLessonNum
         {
           name,
           description,
-          module_id: moduleNumber,
+          module_number: moduleNumber,
           lesson_number: initialLessonNumber,
           image: imagePath,
           markdown: markdownJson,
@@ -80,59 +79,88 @@ export default function CreateLessonForm({ topic, moduleNumber, initialLessonNum
 
   const isFormValid = name && description && initialLessonNumber && markdownJson;
 
+  const EditorComponent = useCallback(() => (
+    <BlockNoteView
+      editor={editor}
+      theme="light"
+      onChange={onChange}
+    />
+  ), [editor, onChange]);
+
   return (
-    <main className="flex min-h-screen bg-gray-100 p-8">
-      <div className="w-1/2 pr-4">
-        <div className="h-full rounded-lg bg-white p-6 shadow-md">
-          <h2 className="mb-4 text-2xl font-bold">Markdown Editor</h2>
-          <BlockNoteView theme={"light"} editor={editor} onChange={onChange} />
-        </div>
-      </div>
-      <div className="w-1/2 pl-4">
-        <div className="h-full rounded-lg bg-white p-6 shadow-md">
-          <h1 className="mb-6 text-center text-2xl font-bold">
-            Create New Lesson for {topic} Module {moduleNumber}
-          </h1>
+    <main className="flex min-h-screen bg-neutral-50 p-8">
+      <Card className="w-1/2 mr-4">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Markdown Editor</CardTitle>
+          <Dialog open={isFullScreen} onOpenChange={setIsFullScreen}>
+            <Button variant="ghost" size="icon" onClick={() => setIsFullScreen(true)}>
+              <Maximize2 className="h-4 w-4" />
+            </Button>
+            <DialogContent className="max-w-full w-full h-full">
+              <DialogHeader className="flex flex-row items-center justify-between">
+                <DialogTitle>Full Screen Editor</DialogTitle>
+              </DialogHeader>
+              <div className="h-[calc(100vh-100px)]">
+                <EditorComponent />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </CardHeader>
+        <CardContent>
+          <EditorComponent />
+        </CardContent>
+      </Card>
+      <Card className="w-1/2 ml-4">
+        <CardHeader>
+          <CardTitle>Create New Lesson for {topic} Module {moduleNumber}</CardTitle>
+        </CardHeader>
+        <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <InputWithLabel
-              label="Lesson Name"
-              value={name}
-              onChange={(v) => setName(v)}
-              required
-            />
-            <InputWithLabel
-              label="Description"
-              value={description}
-              onChange={(v) => setDescription(v)}
-              required
-            />
-            <InputWithLabel
-              label="Lesson Number"
-              value={initialLessonNumber}
-              readOnly
-              required
-            />
-            <div className="mb-4">
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Image
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="name">Lesson Name</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lessonNumber">Lesson Number</Label>
+              <Input
+                id="lessonNumber"
+                value={initialLessonNumber}
+                readOnly
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="image">Image</Label>
+              <Input
+                id="image"
                 type="file"
                 onChange={(e) => setImage(e.target.files[0])}
-                className="mt-1 block w-full text-sm text-gray-500"
               />
             </div>
             <Button
               type="submit"
               disabled={!isFormValid || isLoading}
-              size="md"
-              variant="primary"
+              className="w-full"
             >
               {isLoading ? "Creating..." : "Create Lesson"}
             </Button>
           </form>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </main>
   );
 }

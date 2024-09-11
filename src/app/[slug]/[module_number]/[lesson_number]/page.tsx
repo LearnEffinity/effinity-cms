@@ -1,13 +1,20 @@
 "use client";
+
 import { Block, BlockNoteEditor, PartialBlock } from "@blocknote/core";
 import "@blocknote/core/fonts/inter.css";
+import {  useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
-import "@blocknote/mantine/style.css";
-import { useEffect, useState } from "react";
+import "@blocknote/core/style.css";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import Button from "@/components/form/Button";
-import { InputWithLabel } from "@/components/form/Input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Maximize2, X } from "lucide-react";
 
 export default function EditLesson({ params }) {
   const supabase = createClient();
@@ -21,9 +28,12 @@ export default function EditLesson({ params }) {
   const [image, setImage] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [editor, setEditor] = useState<BlockNoteEditor | null>(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [initialContent, setInitialContent] = useState<PartialBlock[] | undefined>(undefined);
 
-  async function saveToSupabase(jsonBlocks: Block[]) {
+  const editor = useCreateBlockNote({ initialContent });
+
+  const saveToSupabase = useCallback(async (jsonBlocks: Block[]) => {
     try {
       const { error } = await supabase
         .from("lessons")
@@ -36,9 +46,9 @@ export default function EditLesson({ params }) {
     } catch (error) {
       console.error("Error saving to Supabase:", error);
     }
-  }
+  }, [supabase, topic, moduleId, lessonId]);
 
-  async function loadFromSupabase() {
+  const loadFromSupabase = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("lessons")
@@ -47,7 +57,7 @@ export default function EditLesson({ params }) {
         .eq("module_number", moduleId)
         .eq("lesson_number", lessonId)
         .single();
-      console.log("data", data);
+
       if (error) throw error;
 
       setName(data.name);
@@ -66,19 +76,11 @@ export default function EditLesson({ params }) {
       console.error("Error loading from Supabase:", error);
       return undefined;
     }
-  }
+  }, [supabase, topic, moduleId, lessonId]);
 
   useEffect(() => {
-    loadFromSupabase().then((content) => {
-      if (content) {
-        const newEditor = BlockNoteEditor.create({ initialContent: content });
-        setEditor(newEditor);
-      } else {
-        const newEditor = BlockNoteEditor.create();
-        setEditor(newEditor);
-      }
-    });
-  }, [topic, moduleId, lessonId]);
+    loadFromSupabase().then(setInitialContent);
+  }, [loadFromSupabase]);
 
   const handleImageUpload = async (file) => {
     let name = `${Date.now()}-${file.name}`;
@@ -89,7 +91,6 @@ export default function EditLesson({ params }) {
     if (error) {
       throw error;
     }
-    console.log("image data", data);
 
     return data.path;
   };
@@ -110,7 +111,7 @@ export default function EditLesson({ params }) {
           name,
           description,
           image: imagePath,
-          markdown: JSON.stringify(editor?.document),
+          markdown: JSON.stringify(editor.document),
         })
         .eq("topic", topic)
         .eq("module_number", moduleId)
@@ -128,56 +129,83 @@ export default function EditLesson({ params }) {
 
   const isFormValid = name && description && editor?.document;
 
+  const EditorComponent = useCallback(() => (
+    <BlockNoteView
+      editor={editor}
+      theme="light"
+      onChange={() => saveToSupabase(editor.document)}
+    />
+  ), [editor, saveToSupabase]);
+
   if (!editor) {
     return "Loading content...";
   }
 
   return (
-    <main className="flex min-h-screen bg-gray-100 p-8">
-      <div className="w-1/2 pr-4">
-        <div className="h-full rounded-lg  p-6 shadow-md">
-          <h2 className="mb-4 text-2xl font-bold">Markdown Editor</h2>
-          <BlockNoteView
-            theme={"light"}
-            editor={editor}
-            onChange={() => {
-              saveToSupabase(editor.document);
-            }}
-          />
-        </div>
-      </div>
-      <div className="w-1/2 pl-4">
-        <div className="h-full rounded-lg bg-white p-6 shadow-md">
-          <h1 className="mb-6 text-center text-2xl font-bold">
-            Edit Lesson {lessonId} for {topic} Module {moduleId}
-          </h1>
+    <main className="flex min-h-screen bg-neutral-50 p-8">
+      <Card className="w-1/2 mr-4">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Markdown Editor</CardTitle>
+          <Dialog open={isFullScreen} onOpenChange={setIsFullScreen}>
+            <Button variant="ghost" size="icon" onClick={() => setIsFullScreen(true)}>
+              <Maximize2 className="h-4 w-4" />
+            </Button>
+            <DialogContent className="max-w-full w-full h-full">
+              <DialogHeader className="flex flex-row items-center justify-between">
+                <DialogTitle>Full Screen Editor</DialogTitle>
+                <Button variant="ghost" size="icon" onClick={() => setIsFullScreen(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </DialogHeader>
+              <div className="h-[calc(100vh-100px)]">
+                <EditorComponent />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </CardHeader>
+        <CardContent>
+          <EditorComponent />
+        </CardContent>
+      </Card>
+      <Card className="w-1/2 ml-4">
+        <CardHeader>
+          <CardTitle>Edit Lesson {lessonId} for {topic} Module {moduleId}</CardTitle>
+        </CardHeader>
+        <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <InputWithLabel
-              label="Lesson Name"
-              value={name}
-              onChange={(v) => setName(v)}
-              required
-            />
-            <InputWithLabel
-              label="Description"
-              value={description}
-              onChange={(v) => setDescription(v)}
-              required
-            />
-            <InputWithLabel
-              label="Lesson Number"
-              value={lessonId}
-              readOnly
-              required
-            />
-            <div className="mb-4">
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Image
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="name">Lesson Name</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lessonNumber">Lesson Number</Label>
+              <Input
+                id="lessonNumber"
+                value={lessonId}
+                readOnly
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="image">Image</Label>
+              <Input
+                id="image"
                 type="file"
                 onChange={(e) => setImage(e.target.files[0])}
-                className="mt-1 block w-full text-sm text-gray-500"
               />
               {imageUrl && (
                 <img
@@ -190,14 +218,13 @@ export default function EditLesson({ params }) {
             <Button
               type="submit"
               disabled={!isFormValid || isLoading}
-              size="md"
-              variant="primary"
+              className="w-full"
             >
               {isLoading ? "Updating..." : "Update Lesson"}
             </Button>
           </form>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </main>
   );
 }
