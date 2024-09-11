@@ -31,7 +31,7 @@ export default async function Home() {
             <h1 className="text-4xl font-bold text-neutral-800 mb-2">
               Welcome, {user.user_metadata.name || user.user_metadata.first_name}
             </h1>
-            <p className="text-lg text-neutral-600">Manage your topics and lessons</p>
+            <p className="text-lg text-neutral-600">Manage Effinity Content</p>
           </div>
           <Button variant="outline" asChild>
             <a href="/signout">Sign out</a>
