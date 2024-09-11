@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import EditModuleForm from '@/components/form/editmodule'
 import LessonsList from './list'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default async function EditModule({ params }) {
   const supabase = createServerComponentClient({ cookies })
@@ -58,23 +59,30 @@ export default async function EditModule({ params }) {
   }
 
   return (
-    <main className="flex min-h-screen bg-gray-100 p-8">
-      <div className="w-1/2 pr-4">
-        <LessonsList lessons={lessons} slug={slug} moduleNumber={moduleNumber} />
+    <div className="container mx-auto py-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Lessons</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <LessonsList lessons={lessons} slug={slug} moduleNumber={moduleNumber} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Edit Module for {slug} as Module {moduleNumber}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EditModuleForm 
+              initialModule={module}
+              initialImageUrl={imageUrl}
+              slug={slug}
+              moduleNumber={moduleNumber}
+            />
+          </CardContent>
+        </Card>
       </div>
-      <div className="w-1/2 pl-4">
-        <div className="h-full rounded-lg bg-white p-6 shadow-md">
-          <h1 className="mb-6 text-center text-2xl font-bold">
-            Edit Module for {slug} as Module {moduleNumber}
-          </h1>
-          <EditModuleForm 
-            initialModule={module}
-            initialImageUrl={imageUrl}
-            slug={slug}
-            moduleNumber={moduleNumber}
-          />
-        </div>
-      </div>
-    </main>
+    </div>
   );
 }

@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import Button from "@/components/form/Button";
-import { InputWithLabel } from "@/components/form/Input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function EditModuleForm({ initialModule, initialImageUrl, slug, moduleNumber }) {
   const supabase = createClientComponentClient()
@@ -12,7 +15,7 @@ export default function EditModuleForm({ initialModule, initialImageUrl, slug, m
 
   const [name, setName] = useState(initialModule.name);
   const [description, setDescription] = useState(initialModule.description);
-  const [difficulty, setDifficulty] = useState(initialModule.difficulty);
+  const [difficulty, setDifficulty] = useState(initialModule.difficulty.toString());
   const [length, setLength] = useState(initialModule.length);
   const [image, setImage] = useState(null);
   const [imageUrl, setImageUrl] = useState(initialImageUrl);
@@ -68,65 +71,71 @@ export default function EditModuleForm({ initialModule, initialImageUrl, slug, m
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <InputWithLabel
-        label="Module Name"
-        value={name}
-        onChange={(v) => setName(v)}
-      />
-      <InputWithLabel
-        label="Description"
-        value={description}
-        onChange={(v) => setDescription(v)}
-      />
-      <InputWithLabel
-        label="Module Number"
-        value={moduleNumber}
-        readOnly
-      />
-      <div className="mb-4">
-        <label className="mb-1 block text-sm font-medium text-gray-700">
-          Difficulty
-        </label>
-        <select
-          value={difficulty}
-          onChange={(e) => setDifficulty(e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        >
-          <option value="" disabled>
-            Select difficulty
-          </option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-        </select>
+      <div className="space-y-2">
+        <Label htmlFor="name">Module Name</Label>
+        <Input
+          id="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
       </div>
-      <InputWithLabel
-        label="Length (in minutes)"
-        value={length}
-        onChange={(v) => setLength(v)}
-      />
-      <div className="mb-4">
-        <label className="mb-1 block text-sm font-medium text-gray-700">
-          Image
-        </label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="moduleNumber">Module Number</Label>
+        <Input
+          id="moduleNumber"
+          value={moduleNumber}
+          readOnly
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="difficulty">Difficulty</Label>
+        <Select value={difficulty} onValueChange={setDifficulty}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select difficulty" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="1">1</SelectItem>
+            <SelectItem value="2">2</SelectItem>
+            <SelectItem value="3">3</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="length">Length (in minutes)</Label>
+        <Input
+          id="length"
+          type="number"
+          value={length}
+          onChange={(e) => setLength(e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="image">Image</Label>
+        <Input
+          id="image"
           type="file"
           onChange={(e) => setImage(e.target.files[0])}
-          className="mt-1 block w-full text-sm text-gray-500"
         />
         {imageUrl && (
           <img
             src={imageUrl}
             alt="Module Image"
-            className="mt-4 h-48 w-full object-cover"
+            className="mt-4 h-48 w-full object-cover rounded-md"
           />
         )}
       </div>
       <Button
         type="submit"
         disabled={!isFormValid || isLoading}
-        size="md"
-        variant="primary"
+        className="w-full"
       >
         {isLoading ? "Saving..." : "Save Changes"}
       </Button>
