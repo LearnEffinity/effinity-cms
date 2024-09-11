@@ -16,6 +16,13 @@ export default function BreadcrumbWrapper({ children }: { children: React.ReactN
   const pathname = usePathname();
   const pathSegments = pathname.split('/').filter(segment => segment);
 
+  const formatSegment = (segment: string) => {
+    return segment
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   return (
     <div>
       <header className="bg-primary/10 py-4 mb-8">
@@ -28,15 +35,16 @@ export default function BreadcrumbWrapper({ children }: { children: React.ReactN
               {pathSegments.map((segment, index) => {
                 const href = `/${pathSegments.slice(0, index + 1).join('/')}`;
                 const isLast = index === pathSegments.length - 1;
+                const formattedSegment = formatSegment(segment);
 
                 return (
                   <React.Fragment key={href}>
                     <BreadcrumbSeparator className="text-primary/60" />
                     <BreadcrumbItem>
                       {isLast ? (
-                        <BreadcrumbPage className="text-primary font-semibold">{segment}</BreadcrumbPage>
+                        <BreadcrumbPage className="text-primary font-semibold">{formattedSegment}</BreadcrumbPage>
                       ) : (
-                        <BreadcrumbLink href={href} className="text-primary font-medium">{segment}</BreadcrumbLink>
+                        <BreadcrumbLink href={href} className="text-primary font-medium">{formattedSegment}</BreadcrumbLink>
                       )}
                     </BreadcrumbItem>
                   </React.Fragment>
