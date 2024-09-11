@@ -1,33 +1,42 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Button from "@/components/form/Button";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function ModuleCard({ module, slug }) {
   const router = useRouter();
 
   return (
-    <div className="rounded-lg bg-white p-6 shadow-md">
+    <Card className="flex flex-col h-full">
       {module.imageUrl && (
-        <img
-          src={module.imageUrl}
-          alt={module.name}
-          className="mb-4 h-48 w-full rounded-t-lg object-cover"
-        />
+        <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+          <img
+            src={module.imageUrl}
+            alt={module.name}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        </div>
       )}
-      <h3 className="mb-2 text-xl font-bold">
-        Module {module.module_number}: {module.name}
-      </h3>
-      <p className="mb-4 text-gray-700">{module.description}</p>
-      <div className="flex justify-end">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <Badge variant="secondary">Module {module.module_number}</Badge>
+        </div>
+        <CardTitle className="mt-2">{module.name}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex-grow">
+        <p className="text-muted-foreground">{module.description}</p>
+      </CardContent>
+      <CardFooter>
         <Button
           onClick={() => router.push(`/${slug}/${module.module_number}`)}
-          size="sm"
           variant="outline"
+          className="w-full"
         >
           Edit Module
         </Button>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }

@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import Button from "@/components/form/Button";
-import { InputWithLabel } from "@/components/form/Input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import ModuleCard from "./card";
 
 export default function TopicPageClient({ initialTopic, initialModules, slug }) {
@@ -34,58 +37,59 @@ export default function TopicPageClient({ initialTopic, initialModules, slug }) 
   };
 
   return (
-    <main className="flex min-h-screen bg-gray-100">
-      <div className="flex-1 p-8">
-        <div className="mb-8">
-          {isEditing ? (
-            <form onSubmit={handleEdit} className="space-y-4">
-              <InputWithLabel
-                label="Title"
-                value={topic.name}
-                onChange={(v) => setTopic({ ...topic, name: v })}
-                required
-              />
-              <InputWithLabel
-                label="Description"
-                value={topic.description}
-                onChange={(v) => setTopic({ ...topic, description: v })}
-                required
-              />
-              <Button
-                type="submit"
-                disabled={isLoading}
-                size="md"
-                variant="primary"
-              >
-                {isLoading ? "Saving..." : "Save"}
+    <main className="min-h-screen bg-background p-8">
+      <div className="mx-auto max-w-5xl">
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-3xl font-bold">{topic.name}</CardTitle>
+            <CardDescription>{topic.description}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isEditing ? (
+              <form onSubmit={handleEdit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    value={topic.name}
+                    onChange={(e) => setTopic({ ...topic, name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Input
+                    id="description"
+                    value={topic.description}
+                    onChange={(e) => setTopic({ ...topic, description: e.target.value })}
+                    required
+                  />
+                </div>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Saving..." : "Save"}
+                </Button>
+              </form>
+            ) : (
+              <Button onClick={() => setIsEditing(true)} variant="outline">
+                Edit Topic
               </Button>
-            </form>
-          ) : (
-            <div className="mx-auto flex flex-col justify-center ">
-              <h1 className="mb-4 text-3xl font-bold ">{topic.name}</h1>
-              <p className="mb-6 text-gray-700">{topic.description}</p>
-              <Button
-                onClick={() => setIsEditing(true)}
-                className="w-85"
-              >
-                Edit Topic Name & Description
-              </Button>
-            </div>
-          )}
-        </div>
+            )}
+          </CardContent>
+        </Card>
 
-        <div className="mb-6 flex flex-col items-center justify-between">
+        <div className="mb-6 flex items-center justify-between">
           <h2 className="text-2xl font-semibold">Modules</h2>
           <Button
             onClick={() => router.push(`/${slug}/create-module`)}
-            size="md"
-            variant="primary"
-            className="w-60"
+            size="lg"
           >
             Create Module
           </Button>
         </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+        <Separator className="my-6" />
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {modules.map((module) => (
             <ModuleCard key={module.id} module={module} slug={slug} />
           ))}
