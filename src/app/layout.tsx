@@ -8,14 +8,14 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Effinity",
+  title: "Effinity CMS",
   description: "It's a secret",
   openGraph: {
     type: "website",
-    url: "mvp.effinity.ca",
+    url: "cms.mvp.effinity.ca",
     title: "Effinity",
     description: "It's a secret",
-    siteName: "Effinity",
+    siteName: "Effinity CMS",
     images: [
       {
         url: "/EffinityMetadataBanner.png",
