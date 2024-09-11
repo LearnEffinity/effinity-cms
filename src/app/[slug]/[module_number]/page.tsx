@@ -50,11 +50,11 @@ export default async function EditModule({ params }) {
     return data.publicUrl;
   }
 
-  const module = await fetchModule();
+  const modulee = await fetchModule();
   const lessons = await fetchLessons();
-  const imageUrl = module?.image ? await fetchImageUrl(module.image) : '';
+  const imageUrl = modulee?.image ? await fetchImageUrl(modulee.image) : '';
 
-  if (!module) {
+  if (!modulee) {
     redirect(`/${slug}`);
   }
 

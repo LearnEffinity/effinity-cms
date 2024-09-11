@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 
-export default function CreateModule({ params, nextModuleNumber }) {
+export default function CreateModule({ params }) {
   const supabase = createClientComponentClient();
   const router = useRouter();
   const topic = params.slug;
@@ -21,9 +21,31 @@ export default function CreateModule({ params, nextModuleNumber }) {
     difficulty: '',
     length: '',
     image: null,
+    module_number: '',
   });
 
   const [isFormValid, setIsFormValid] = useState(false);
+
+  useEffect(() => {
+    const fetchNextModuleNumber = async () => {
+      const { data, error } = await supabase
+        .from('modules')
+        .select('module_number')
+        .eq('topic', topic)
+        .order('module_number', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error('Error fetching next module number:', error);
+        return;
+      }
+
+      const nextModuleNumber = data.length > 0 ? data[0].module_number + 1 : 1;
+      setFormData(prev => ({ ...prev, module_number: nextModuleNumber }));
+    };
+
+    fetchNextModuleNumber();
+  }, [topic]);
 
   useEffect(() => {
     const { name, description, difficulty, length, image } = formData;
@@ -46,7 +68,7 @@ export default function CreateModule({ params, nextModuleNumber }) {
     e.preventDefault();
     if (!isFormValid) return;
 
-    const { name, description, difficulty, length, image } = formData;
+    const { name, description, difficulty, length, image, module_number } = formData;
 
     let imagePath = null;
     if (image) {
@@ -65,7 +87,7 @@ export default function CreateModule({ params, nextModuleNumber }) {
       {
         name,
         description,
-        module_number: nextModuleNumber,
+        module_number,
         difficulty,
         length,
         image: imagePath,
@@ -86,7 +108,7 @@ export default function CreateModule({ params, nextModuleNumber }) {
       <Card className='border-none'>
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">
-            Create New Module for {topic} as Module {nextModuleNumber}
+            Create New Module for {topic} as Module {formData.module_number}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -116,7 +138,7 @@ export default function CreateModule({ params, nextModuleNumber }) {
               <Input
                 id="module_number"
                 name="module_number"
-                value={nextModuleNumber}
+                value={formData.module_number}
                 readOnly
                 required
               />

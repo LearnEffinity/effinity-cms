@@ -47,7 +47,7 @@ export default function CreateTopic() {
               <Input id="description" name="description" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="slug">Slug (note you can't change this later)</Label>
+              <Label htmlFor="slug">Slug (note you can&apos;t change this later)</Label>
               <Input id="slug" name="slug" required />
             </div>
             <Button type="submit" className="w-full">

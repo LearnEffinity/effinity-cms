@@ -29,7 +29,7 @@ export default function Home() {
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center">
-          <p className="mb-6 text-xl">You don't have admin access!</p>
+          <p className="mb-6 text-xl">You don&apos;t have admin access!</p>
           <Button
             className="w-full"
             onClick={handleSignOut}
