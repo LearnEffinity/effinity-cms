@@ -15,12 +15,21 @@ import React from 'react';
 export default function BreadcrumbWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const pathSegments = pathname.split('/').filter(segment => segment);
+  console.log(pathSegments);
 
-  const formatSegment = (segment: string) => {
-    return segment
+  const formatSegment = (segment: string, index: number) => {
+    let formattedSegment = segment
       .split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+
+    if (index === 1 && !isNaN(Number(segment))) {
+      formattedSegment = `Module ${formattedSegment}`;
+    } else if (index === 2 && !isNaN(Number(segment))) {
+      formattedSegment = `Lesson ${formattedSegment}`;
+    }
+
+    return formattedSegment;
   };
 
   return (
@@ -35,7 +44,7 @@ export default function BreadcrumbWrapper({ children }: { children: React.ReactN
               {pathSegments.map((segment, index) => {
                 const href = `/${pathSegments.slice(0, index + 1).join('/')}`;
                 const isLast = index === pathSegments.length - 1;
-                const formattedSegment = formatSegment(segment);
+                const formattedSegment = formatSegment(segment, index);
 
                 return (
                   <React.Fragment key={href}>

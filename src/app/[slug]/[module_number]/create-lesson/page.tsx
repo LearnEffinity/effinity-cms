@@ -12,7 +12,7 @@ export default async function CreateLessonPage({ params }) {
       .from("lessons")
       .select("lesson_number")
       .eq("topic", topic)
-      .eq("module_id", moduleNumber)
+      .eq("module_number", moduleNumber)
       .order("lesson_number", { ascending: false })
       .limit(1);
 
