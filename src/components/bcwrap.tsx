@@ -31,6 +31,9 @@ export default function BreadcrumbWrapper({ children }: { children: React.ReactN
 
     return formattedSegment;
   };
+  if (pathname.startsWith('/auth')) {
+    return <>{children}</>;
+  }
 
   return (
     <div>
