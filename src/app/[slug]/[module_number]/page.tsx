@@ -57,6 +57,7 @@ export default async function EditModule({ params }) {
   if (!modulee) {
     redirect(`/${slug}`);
   }
+  const serializedModule = modulee ? JSON.parse(JSON.stringify(modulee)) : null;
 
   return (
     <div className="container mx-auto py-8">
@@ -75,7 +76,7 @@ export default async function EditModule({ params }) {
           </CardHeader>
           <CardContent>
             <EditModuleForm 
-              initialModule={module}
+              initialModule={serializedModule}
               initialImageUrl={imageUrl}
               slug={slug}
               moduleNumber={moduleNumber}
