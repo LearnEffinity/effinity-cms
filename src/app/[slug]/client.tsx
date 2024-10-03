@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import ModuleCard from "./card";
+import { updateTopic } from './actions';
 
 export default function TopicPageClient({ initialTopic, initialModules, slug }) {
   const supabase = createClientComponentClient();
@@ -23,12 +24,14 @@ export default function TopicPageClient({ initialTopic, initialModules, slug }) 
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase
-        .from("topics")
-        .update({ name: topic.name, description: topic.description })
-        .eq("slug", slug);
-      if (error) throw error;
-      setIsEditing(false);
+      const result = await updateTopic(slug, topic.name, topic.description);
+      if (result.success) {
+        console.log("Updated topic:", result.data);
+        setTopic({ ...topic, name: topic.name, description: topic.description });
+        setIsEditing(false);
+      } else {
+        console.error("Error updating topic:", result.error);
+      }
     } catch (error) {
       console.error("Error updating topic:", error);
     } finally {
