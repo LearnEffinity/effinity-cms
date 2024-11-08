@@ -13,7 +13,6 @@ interface User {
 }
 
 export async function middleware(request: NextRequest) {
-  console.log("Middleware function called for path:", request.nextUrl.pathname);
 
   let response = NextResponse.next({
     request: {
@@ -40,10 +39,8 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  console.log("User:", user);
 
   const pathname = request.nextUrl.pathname;
-  console.log("Current pathname:", pathname);
 
   if (pathname.startsWith("/auth/reset")) {
     console.log("Allowing access to /auth/reset");

@@ -23,8 +23,6 @@ export async function updateTopic(slug: string, name: string, description: strin
 export async function deleteModule(slug: string, moduleNumber: number) {
   const supabase = createClient(cookies());
 
-  console.log("in actions.ts");
-  console.log("Deleting module:", slug, moduleNumber);
 
   try {
     const { data: lessonsData } = await supabase
@@ -33,7 +31,6 @@ export async function deleteModule(slug: string, moduleNumber: number) {
       .eq("topic", slug)
       .eq("module_number", moduleNumber);
 
-    console.log("Found lessons:", lessonsData);
 
     const { data: deletedLessons, error: lessonsError } = await supabase
       .from("lessons")
@@ -42,7 +39,6 @@ export async function deleteModule(slug: string, moduleNumber: number) {
       .eq("module_number", moduleNumber)
       .select();
 
-    console.log("Deleted lessons:", deletedLessons);
 
     if (lessonsError) {
       console.error("Error deleting lessons:", lessonsError);
@@ -55,7 +51,6 @@ export async function deleteModule(slug: string, moduleNumber: number) {
       .eq("topic", slug)
       .eq("module_number", moduleNumber);
 
-    console.log("Found module:", moduleData);
 
     const { data: deletedModule, error: moduleError } = await supabase
       .from("modules")
@@ -64,7 +59,6 @@ export async function deleteModule(slug: string, moduleNumber: number) {
       .eq("module_number", moduleNumber)
       .select();
 
-    console.log("Deleted module:", deletedModule);
 
     if (moduleError) {
       console.error("Error deleting module:", moduleError);
