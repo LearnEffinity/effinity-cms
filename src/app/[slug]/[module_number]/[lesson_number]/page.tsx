@@ -2,7 +2,7 @@
 
 import { Block, BlockNoteEditor, PartialBlock } from "@blocknote/core";
 import "@blocknote/core/fonts/inter.css";
-import {  useCreateBlockNote } from "@blocknote/react";
+import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/core/style.css";
 import { useCallback, useEffect, useState } from "react";
@@ -29,9 +29,8 @@ export default function EditLesson({ params }) {
   const [imageUrl, setImageUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [initialContent, setInitialContent] = useState<PartialBlock[] | undefined>(undefined);
 
-  const editor = useCreateBlockNote({ initialContent });
+  const editor = useCreateBlockNote();
 
   const saveToSupabase = useCallback(async (jsonBlocks: Block[]) => {
     try {
@@ -58,6 +57,8 @@ export default function EditLesson({ params }) {
         .eq("lesson_number", lessonId)
         .single();
 
+      console.log("Loaded data:", data);
+
       if (error) throw error;
 
       setName(data.name);
@@ -69,9 +70,13 @@ export default function EditLesson({ params }) {
         setImageUrl(imageData.publicUrl);
       }
 
-      return data.markdown
-        ? JSON.parse(data.markdown) as PartialBlock[]
-        : undefined;
+      if (data.markdown) {
+        const parsedMarkdown = JSON.parse(data.markdown);
+        console.log("Parsed markdown:", parsedMarkdown);
+        return parsedMarkdown;
+      }
+
+      return undefined;
     } catch (error) {
       console.error("Error loading from Supabase:", error);
       return undefined;
@@ -79,8 +84,16 @@ export default function EditLesson({ params }) {
   }, [supabase, topic, moduleId, lessonId]);
 
   useEffect(() => {
-    loadFromSupabase().then(setInitialContent);
-  }, [loadFromSupabase]);
+    loadFromSupabase().then((content) => {
+      if (content && editor) {
+        console.log("Updating editor content with:", content);
+        editor.replaceBlocks(
+          editor.document,
+          content      
+        );
+      }
+    });
+  }, [loadFromSupabase, editor]);
 
   const handleImageUpload = async (file) => {
     let name = `${Date.now()}-${file.name}`;
