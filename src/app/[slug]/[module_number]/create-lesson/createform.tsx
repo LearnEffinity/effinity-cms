@@ -55,6 +55,16 @@ export default function CreateLessonForm({ topic, moduleNumber, initialLessonNum
     try {
       const imagePath = image ? await handleImageUpload(image) : null;
 
+      console.log({
+        name,
+        description,
+        moduleNumber,
+        initialLessonNumber,
+        imagePath,
+        markdownJson,
+        topic
+      });
+
       const { data, error } = await supabase.from("lessons").insert([
         {
           name,
@@ -69,7 +79,7 @@ export default function CreateLessonForm({ topic, moduleNumber, initialLessonNum
 
       if (error) throw error;
 
-      router.push(`/${topic}/${moduleNumber}/${initialLessonNumber}`);
+      router.push(`/${topic}/${moduleNumber}`);
     } catch (error) {
       console.error("Error creating lesson:", error);
     } finally {
